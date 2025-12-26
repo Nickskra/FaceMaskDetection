@@ -1,0 +1,11 @@
+dataset:
+  img_path: data/Dataset
+
+training:
+  batch_size: 32
+  epochs: 5
+  learning_rate: 0.0001
+
+model:
+  image_size: [224, 224]
+  num_classes: 3
