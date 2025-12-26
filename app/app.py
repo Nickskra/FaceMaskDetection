@@ -1,6 +1,4 @@
 import os
-#os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
-
 import streamlit as st
 import numpy as np
 from PIL import Image, ImageDraw
@@ -8,10 +6,19 @@ import tensorflow as tf
 import cv2
 import av
 from streamlit_webrtc import webrtc_streamer, WebRtcMode
+import pathlib
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 @st.cache_resource
 def load_mask_model():
-    model_path = os.path.join(os.getcwd(), "outputs", "models", "mask_detection_model.h5")
+    BASE_DIR = pathlib.Path(__file__).parent.parent
+    model_path = str(BASE_DIR / "outputs" / "models" / "mask_detection_model.h5")
+    
+    if not os.path.exists(model_path):
+        st.error(f"Model tidak ditemukan di: {model_path}")
+        return None
+        
     return tf.keras.models.load_model(model_path)
 
 class VideoProcessor:
@@ -22,11 +29,14 @@ class VideoProcessor:
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         
+        if self.model is None:
+            return av.VideoFrame.from_ndarray(img, format="bgr24")
+
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img_resized = cv2.resize(img_rgb, (224, 224))
-        img_array = np.expand_dims(img_resized / 255.0, axis=0)
+        img_array = np.expand_dims(img_resized / 255.0, axis=0).astype(np.float32)
         
-        preds = self.model.predict(img_array, verbose=0)
+        preds = self.model(img_array, training=False).numpy() 
         idx = np.argmax(preds[0])
         label = self.class_names[idx]
         conf = preds[0][idx] * 100
@@ -69,31 +79,32 @@ def main():
             if st.button("RUN ANALYSIS", key="analyze_static"):
                 with st.spinner("Analyzing image..."):
                     model = load_mask_model()
-                    class_names = ["Incorrect Mask", "With Mask", "Without Mask"]
-                    
-                    img_resized = img.resize((224, 224))
-                    img_array = np.array(img_resized) / 255.0
-                    img_array = np.expand_dims(img_array, axis=0)
-                    
-                    preds = model.predict(img_array, verbose=0)
-                    idx = np.argmax(preds[0])
-                    label = class_names[idx]
-                    conf = preds[0][idx] * 100
-                    
-                    color_hex = "#00FF00" if idx == 1 else "#FFA500" if idx == 0 else "#FF0000"
-                    
-                    with col_out:
-                        st.markdown(f"""
-                            <div style="background-color: #111111; padding: 20px; border-radius: 10px; border-left: 10px solid {color_hex};">
-                                <h4 style="margin:0; color: #888888;">RESULT</h4>
-                                <h2 style="color: {color_hex}; margin: 0;">{label.upper()}</h2>
-                                <p style="margin:0;">Confidence: {conf:.2f}%</p>
-                            </div>
-                        """, unsafe_allow_html=True)
+                    if model is not None:
+                        class_names = ["Incorrect Mask", "With Mask", "Without Mask"]
                         
-                        draw = img.copy()
-                        ImageDraw.Draw(draw).rectangle([0, 0, draw.width, draw.height], outline=color_hex, width=25)
-                        st.image(draw, caption="Detection Result", use_column_width=True)
+                        img_resized = img.resize((224, 224))
+                        img_array = np.array(img_resized) / 255.0
+                        img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
+                        
+                        preds = model.predict(img_array, verbose=0)
+                        idx = np.argmax(preds[0])
+                        label = class_names[idx]
+                        conf = preds[0][idx] * 100
+                        
+                        color_hex = "#00FF00" if idx == 1 else "#FFA500" if idx == 0 else "#FF0000"
+                        
+                        with col_out:
+                            st.markdown(f"""
+                                <div style="background-color: #111111; padding: 20px; border-radius: 10px; border-left: 10px solid {color_hex};">
+                                    <h4 style="margin:0; color: #888888;">RESULT</h4>
+                                    <h2 style="color: {color_hex}; margin: 0;">{label.upper()}</h2>
+                                    <p style="margin:0;">Confidence: {conf:.2f}%</p>
+                                </div>
+                            """, unsafe_allow_html=True)
+                            
+                            draw = img.copy()
+                            ImageDraw.Draw(draw).rectangle([0, 0, draw.width, draw.height], outline=color_hex, width=25)
+                            st.image(draw, caption="Detection Result", use_column_width=True)
 
     with tab2:
         st.subheader("Live Monitoring")
@@ -109,3 +120,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
