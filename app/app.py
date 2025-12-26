@@ -1,5 +1,5 @@
 import os
-os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+#os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 import streamlit as st
 import numpy as np
@@ -107,4 +107,5 @@ def main():
         )
 
 if __name__ == "__main__":
+
     main()
