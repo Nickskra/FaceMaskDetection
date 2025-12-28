@@ -42,11 +42,7 @@ class VideoProcessor:
         label = CLASS_NAMES[idx]
         conf = preds[0][idx] * 100
 
-        color = (
-            (0, 200, 0) if idx == 1 else
-            (255, 165, 0) if idx == 0 else
-            (255, 60, 60)
-        )
+        color = (0, 200, 0) if idx == 1 else (255, 165, 0) if idx == 0 else (255, 60, 60)
 
         cv2.putText(
             img,
@@ -64,8 +60,7 @@ class VideoProcessor:
 def main():
     st.set_page_config(
         page_title="Face Mask Detection",
-        layout="wide",
-        initial_sidebar_state="collapsed"
+        layout="wide"
     )
 
     st.markdown(
@@ -75,14 +70,9 @@ def main():
             background-color: #0f1117;
             color: #eaeaea;
         }
-        h1, h2, h3 {
+        .sidebar-title {
+            font-size: 22px;
             font-weight: 600;
-        }
-        .card {
-            background-color: #161b22;
-            padding: 24px;
-            border-radius: 14px;
-            border-left: 6px solid;
         }
         .subtle {
             color: #9aa0a6;
@@ -93,19 +83,39 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.title("😷 Face Mask Detection")
-    st.markdown(
-        "<p class='subtle'>AI-powered system to detect mask usage from images or live camera</p>",
-        unsafe_allow_html=True,
-    )
+    with st.sidebar:
+        st.markdown("**Face Mask Detection**")
+        st.markdown(
+            "<p class='subtle'>Deep Learning based image classification & object detection</p>",
+            unsafe_allow_html=True
+        )
 
-    tab_upload, tab_live = st.tabs(["📤 Image Upload", "🎥 Real-time Camera"])
+        st.markdown("---")
 
-    with tab_upload:
-        st.subheader("Upload an Image")
+        mode = st.radio(
+            "Choose Detection Mode",
+            ["📤 Upload Image", "🎥 Real-time Camera"]
+        )
+
+        st.markdown("---")
+        st.markdown(
+            """
+            **Classes Detected**
+            - ✅ With Mask  
+            - ⚠️ Incorrect Mask  
+            - ❌ Without Mask  
+            """
+        )
+
+        st.caption("Built with TensorFlow & Streamlit")
+
+    st.title("Face Mask Detection System")
+
+    if mode == "📤 Upload Image":
+        st.subheader("Upload Image")
 
         file = st.file_uploader(
-            "Supported formats: JPG, PNG, JPEG",
+            "Upload an image (JPG / PNG / JPEG)",
             type=["jpg", "jpeg", "png"]
         )
 
@@ -117,7 +127,7 @@ def main():
                 st.image(img, caption="Original Image", use_column_width=True)
 
             if st.button("Analyze Image"):
-                with st.spinner("Running prediction..."):
+                with st.spinner("Analyzing image..."):
                     model = load_mask_model()
 
                     if model:
@@ -130,25 +140,26 @@ def main():
                         label = CLASS_NAMES[idx]
                         conf = preds[0][idx] * 100
 
-                        color_hex = (
-                            "#2ecc71" if idx == 1 else
-                            "#f39c12" if idx == 0 else
-                            "#e74c3c"
-                        )
+                        color_hex = "#2ecc71" if idx == 1 else "#f39c12" if idx == 0 else "#e74c3c"
 
                         with col2:
                             st.markdown(
                                 f"""
-                                <div class="card" style="border-color:{color_hex}">
-                                    <h4 class="subtle">DETECTION RESULT</h4>
-                                    <h2 style="margin: 5px 0; color:{color_hex};">
-                                        {label.upper()}
-                                    </h2>
+                                <div style="
+                                    background:#161b22;
+                                    padding:24px;
+                                    border-radius:14px;
+                                    border-left:8px solid {color_hex};
+                                ">
+                                    <h4 style="color:#aaa;">RESULT</h4>
+                                    <h2 style="color:{color_hex};">{label.upper()}</h2>
                                     <p>Confidence: <b>{conf:.2f}%</b></p>
                                 </div>
                                 """,
-                                unsafe_allow_html=True,
+                                unsafe_allow_html=True
                             )
+
+                            st.progress(int(conf))
 
                             draw = img.copy()
                             ImageDraw.Draw(draw).rectangle(
@@ -157,12 +168,12 @@ def main():
                                 width=18,
                             )
                             st.image(draw, caption="Detection Result", use_column_width=True)
-                            
-    with tab_live:
-        st.subheader("Live Camera Detection")
+
+    else:
+        st.subheader("Real-time Camera Detection")
         st.markdown(
             "<p class='subtle'>Allow camera access and keep your face visible</p>",
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
 
         webrtc_streamer(
