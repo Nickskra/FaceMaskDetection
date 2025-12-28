@@ -18,7 +18,7 @@ def load_mask_model():
     model_path = BASE_DIR / "outputs" / "models" / "mask_detection_model.h5"
 
     if not model_path.exists():
-        st.error("❌ Model not found. Please train the model first.")
+        st.error("Model not found. Please train the model first.")
         return None
 
     return tf.keras.models.load_model(model_path)
@@ -98,18 +98,6 @@ def main():
         )
 
         st.markdown("---")
-        st.markdown(
-            """
-            **Classes Detected**
-            - ✅ With Mask  
-            - ⚠️ Incorrect Mask  
-            - ❌ Without Mask  
-            """
-        )
-
-        st.caption("Built with TensorFlow & Streamlit")
-
-    st.title("Face Mask Detection System")
 
     if mode == "📤 Upload Image":
         st.subheader("Upload Image")
@@ -189,3 +177,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
