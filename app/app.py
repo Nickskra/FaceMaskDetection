@@ -42,7 +42,7 @@ class VideoProcessor:
         label = CLASS_NAMES[idx]
         conf = preds[0][idx] * 100
 
-        color = (0, 200, 0) if idx == 1 else (255, 165, 0) if idx == 0 else (255, 60, 60)
+        color = (46, 204, 113) if idx == 1 else (243, 156, 18) if idx == 0 else (231, 76, 60)
 
         cv2.putText(
             img,
@@ -67,16 +67,61 @@ def main():
         """
         <style>
         .stApp {
-            background-color: #0f1117;
+            background-color: #273631;
+            background-image:
+                radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.35));
+            background-size: 22px 22px, cover;
             color: #eaeaea;
         }
+
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #3f6f52, #375F45);
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        section[data-testid="stSidebar"] * {
+            color: #ecf3ee;
+        }
+
         .sidebar-title {
             font-size: 22px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
+
         .subtle {
-            color: #9aa0a6;
-            font-size: 14px;
+            color: #cfe3d6;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        div[role="radiogroup"] label {
+            background-color: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+
+        div[role="radiogroup"] label:hover {
+            background-color: rgba(255,255,255,0.14);
+        }
+
+        button {
+            background: linear-gradient(135deg, #4caf84, #2e7d5b) !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            border: none !important;
+        }
+
+        .result-card {
+            background: rgba(20, 30, 26, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 26px;
+            border-radius: 18px;
+            border-left-width: 8px;
+            border-left-style: solid;
         }
         </style>
         """,
@@ -84,20 +129,24 @@ def main():
     )
 
     with st.sidebar:
-        st.markdown("**Face Mask Detection**")
+        st.markdown("<div class='sidebar-title'>Face Mask Detection</div>", unsafe_allow_html=True)
         st.markdown(
-            "<p class='subtle'>Deep Learning based image classification & object detection</p>",
+            "<p class='subtle'>AI-powered face mask classification system</p>",
             unsafe_allow_html=True
         )
 
         st.markdown("---")
 
         mode = st.radio(
-            "Choose Detection Mode",
+            "Detection Mode",
             ["📤 Upload Image", "🎥 Real-time Camera"]
         )
 
         st.markdown("---")
+        st.markdown(
+            "<p class='subtle'>TensorFlow · Streamlit · OpenCV</p>",
+            unsafe_allow_html=True
+        )
 
     if mode == "📤 Upload Image":
         st.subheader("Upload Image")
@@ -133,14 +182,11 @@ def main():
                         with col2:
                             st.markdown(
                                 f"""
-                                <div style="
-                                    background:#161b22;
-                                    padding:24px;
-                                    border-radius:14px;
-                                    border-left:8px solid {color_hex};
-                                ">
-                                    <h4 style="color:#aaa;">RESULT</h4>
-                                    <h2 style="color:{color_hex};">{label.upper()}</h2>
+                                <div class="result-card" style="border-left-color:{color_hex}">
+                                    <h4 style="color:#b5d8c4;">RESULT</h4>
+                                    <h2 style="color:{color_hex}; margin-top:0;">
+                                        {label.upper()}
+                                    </h2>
                                     <p>Confidence: <b>{conf:.2f}%</b></p>
                                 </div>
                                 """,
@@ -177,4 +223,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
