@@ -23,6 +23,7 @@ def load_mask_model():
 
     return tf.keras.models.load_model(model_path)
 
+
 class VideoProcessor:
     def __init__(self):
         self.model = load_mask_model()
@@ -57,11 +58,9 @@ class VideoProcessor:
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
+
 def main():
-    st.set_page_config(
-        page_title="Face Mask Detection",
-        layout="wide"
-    )
+    st.set_page_config(page_title="Face Mask Detection", layout="wide")
 
     st.markdown(
         """
@@ -87,25 +86,11 @@ def main():
         .sidebar-title {
             font-size: 22px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .subtle {
             color: #cfe3d6;
             font-size: 13px;
-            opacity: 0.85;
-        }
-
-        div[role="radiogroup"] label {
-            background-color: rgba(255,255,255,0.06);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
-        }
-
-        div[role="radiogroup"] label:hover {
-            background-color: rgba(255,255,255,0.14);
         }
 
         button {
@@ -117,7 +102,6 @@ def main():
 
         .result-card {
             background: rgba(20, 30, 26, 0.85);
-            backdrop-filter: blur(8px);
             padding: 26px;
             border-radius: 18px;
             border-left-width: 8px;
@@ -130,23 +114,12 @@ def main():
 
     with st.sidebar:
         st.markdown("<div class='sidebar-title'>Face Mask Detection</div>", unsafe_allow_html=True)
-        st.markdown(
-            "<p class='subtle'>AI-powered face mask classification system</p>",
-            unsafe_allow_html=True
-        )
-
+        st.markdown("<p class='subtle'>AI-powered mask classification & detection</p>", unsafe_allow_html=True)
         st.markdown("---")
 
-        mode = st.radio(
-            "Detection Mode",
-            ["📤 Upload Image", "🎥 Real-time Camera"]
-        )
-
+        mode = st.radio("Detection Mode", ["📤 Upload Image", "🎥 Real-time Camera"])
         st.markdown("---")
-        st.markdown(
-            "<p class='subtle'>TensorFlow · Streamlit · OpenCV</p>",
-            unsafe_allow_html=True
-        )
+        st.markdown("<p class='subtle'>TensorFlow · Streamlit · WebRTC</p>", unsafe_allow_html=True)
 
     if mode == "📤 Upload Image":
         st.subheader("Upload Image")
@@ -183,17 +156,13 @@ def main():
                             st.markdown(
                                 f"""
                                 <div class="result-card" style="border-left-color:{color_hex}">
-                                    <h4 style="color:#b5d8c4;">RESULT</h4>
-                                    <h2 style="color:{color_hex}; margin-top:0;">
-                                        {label.upper()}
-                                    </h2>
+                                    <h4>RESULT</h4>
+                                    <h2 style="color:{color_hex}">{label.upper()}</h2>
                                     <p>Confidence: <b>{conf:.2f}%</b></p>
                                 </div>
                                 """,
                                 unsafe_allow_html=True
                             )
-
-                            st.progress(int(conf))
 
                             draw = img.copy()
                             ImageDraw.Draw(draw).rectangle(
@@ -205,10 +174,7 @@ def main():
 
     else:
         st.subheader("Real-time Camera Detection")
-        st.markdown(
-            "<p class='subtle'>Allow camera access and keep your face visible</p>",
-            unsafe_allow_html=True
-        )
+        st.markdown("<p class='subtle'>Allow camera access</p>", unsafe_allow_html=True)
 
         webrtc_streamer(
             key="mask-detection-live",
@@ -216,7 +182,18 @@ def main():
             video_processor_factory=VideoProcessor,
             async_processing=True,
             rtc_configuration={
-                "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+                "iceServers": [
+                    {"urls": ["stun:stun.l.google.com:19302"]},
+                    {
+                        "urls": [
+                            "turn:openrelay.metered.ca:80",
+                            "turn:openrelay.metered.ca:443",
+                            "turn:openrelay.metered.ca:443?transport=tcp"
+                        ],
+                        "username": "openrelayproject",
+                        "credential": "openrelayproject",
+                    },
+                ]
             },
             media_stream_constraints={"video": True, "audio": False},
         )
