@@ -23,5 +23,5 @@ Aplikasi berbasis web untuk mendeteksi penggunaan masker secara real-time menggu
 - **Streamlit Cloud**: https://facemaskdetection-dl.streamlit.app/
 
 ## Cara pakai
-- **Upload Image**: klik "Browse files", pilih image(jpg,jpeg,png), klik "RUN ANALYSIS"
+- **Upload Image**: klik "Browse files", pilih image(jpg/png), klik "Analyze Image"
 - **Real-Time**: klik start(Pastikan Internet aman)
